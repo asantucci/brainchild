@@ -6,6 +6,15 @@
 \usage{
 CleanStockPrices(stock_prices)
 }
+\arguments{
+\item{stock_prices}{A raw file describing daily prices for a given ticker.}
+}
+\value{
+A data.frame with columns that are guaranteed to be consistent
+    across invocations of this helper function with different inputs.
+}
 \description{
-Cleans raw stock prices fetched from Yahoo (quantmod) API.
+The raw stock prices are fetched with column names that reflect the Ticker.
+We'd like to normalize the columns before joining together datasets from
+many different tickers. We perform minimal formatting on these datasets.
 }

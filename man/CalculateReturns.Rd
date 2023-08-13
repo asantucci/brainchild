@@ -6,6 +6,33 @@
 \usage{
 CalculateReturns(stock_prices, congressional_trades)
 }
+\arguments{
+\item{stock_prices}{A data.frame containing Tickers and Dates and Closing
+prices for each day.}
+
+\item{congressional_trades}{A data.frame with 1-row per representative
+x ticker x trade combination. Note that a representative can make
+multiple transactions for the same ticker on the same day, in which
+case that grouping of rows would repeat (with possibly different
+Transaction types or amounts...).}
+}
+\value{
+A data.frame describing the expected profit per trade per
+    congressional individual.
+}
 \description{
-Calculates percent returns for short and long term trades.
+Takes as input a data.frame of stock prices (cleaned and well-formatted
+according to `CleanStockPrices()` above), as well as a data.frame
+describing Congressional Trades. Examines the expected yield of a short
+and long term trade.
+}
+\details{
+NOTE: This function currently doesn't consider the TRANSACTION column.
+I.e. whether the representative is buying or selling shares.
+This may be relevant in so far as: if a representative is selling their last
+set of shares, then they can't make any future profits.
+
+TODO: discuss with Thomas what the research question is, and learn how
+to more appropriately incorporate this "Transaction" column into our
+analysis.
 }
