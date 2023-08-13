@@ -112,3 +112,62 @@ test_that("CalculateReturns works on a test case with 1 Representative having > 
   )
   expect_equal(CalculateReturns(clean_stock_prices, congressional_trades), expected_output, ignore_attr=TRUE)
 })
+
+test_that("CalculateReturns works on a test case with more than 1 Representative, each making > 1 Trade", {
+  origin_dates <- c(as.Date("2023-01-01"), as.Date("2023-01-20"))
+  clean_stock_prices <- data.frame(
+    "TransactionDate" = c(
+      origin_dates[1],
+      origin_dates[1] + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
+      origin_dates[1] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
+      origin_dates[2],
+      origin_dates[2] + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
+      origin_dates[2] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS
+    ),
+    "Ticker" = c(rep("A", 3), rep("J", 3)),
+    "Close" = c(100, 110, 150, 1000, 900, 1100)
+  )
+  congressional_trades <- data.frame(
+    "Representative" = c("Joseph", "Anna", "Joseph", "Anna"),
+    "Ticker" = c("J", "A", "J", "A"),
+    "TransactionDate" = c(rep(origin_dates[1], 2), rep(origin_dates[2], 2)),
+    "ShortTermReturnDate" = c(
+      origin_dates[1] + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
+      origin_dates[1] + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
+      origin_dates[2] + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
+      origin_dates[2] + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS
+    ),
+    "LongTermReturnDate" = c(
+      origin_dates[1] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
+      origin_dates[1] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
+      origin_dates[2] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
+      origin_dates[2] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS
+    ),
+    "Transaction" = "Purchase",
+    "Amount" = 1
+  )
+  expected_output <- data.frame(
+    "Ticker" = c("A", "A", "J", "J"),
+    "TransactionDate" = c(rep(origin_dates[1], 2), rep(origin_dates[2], 2)),
+    "Representative" = c("Anna", "Anna", "Joseph", "Joseph"),
+    "ShortTermReturnDate" = c(
+      origin_dates[1] + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
+      origin_dates[1] + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
+      origin_dates[2] + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
+      origin_dates[2] + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS
+    ),
+    "LongTermReturnDate" = c(
+      origin_dates[1] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
+      origin_dates[1] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
+      origin_dates[2] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
+      origin_dates[2] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS
+    ),
+    "Transaction" = "Purchase",
+    "Amount" = 1,
+    "beg_price" = c(100, 100, 1000, 1000),
+    "end_price" = c(110, 150, 900, 1100),
+    "is_short_term_return" = c(TRUE, FALSE),
+    "return" = c(10, 50, -10, 10)
+  )
+  expect_equal(CalculateReturns(clean_stock_prices, congressional_trades), expected_output, ignore_attr=TRUE)
+})
