@@ -64,3 +64,20 @@ returns <- lapply(fnames, function(fname) {
   print(paste("Now processing", fname))
   CalculateReturns(stock_prices=fread(fname) %>% CleanStockPrices(), congressional_trades=lst)
 }) %>% rbindlist()
+
+#fwrite(returns, "returns.csv")
+#returns <- fread("C:/Users/asantucci/Desktop/returns.csv")
+
+# Visualize expected returns, excluding outliers.
+bounds <- returns[, quantile(return, probs = c(0.01, 0.99), na.rm = TRUE)]
+average_return <- returns[data.table::between(return, bounds[1], bounds[2]),
+                          .(avg_return = mean(return, na.rm = TRUE)), by = is_short_term_return]
+returns[, is_short_term_return := as.factor(is_short_term_return)]
+ggplot(returns[data.table::between(return, bounds[1], bounds[2])], aes(x = return, fill = is_short_term_return)) +
+  geom_histogram(bins = 100) +
+  scale_y_continuous() +
+  labs(title = "Univariate Distribution of Expected Returns",
+       subtitle = paste("Avg. Short vs. Long term return:", paste(paste0(round(average_return$avg_return, 2), "%"), collapse = ", ")))
+
+ggsave("plots/expected_returns.png", width = 11, height = 8.5)
+
