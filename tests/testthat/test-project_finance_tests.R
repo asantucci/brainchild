@@ -60,3 +60,55 @@ test_that("CalculateReturns works on a simple test case: 1 Representative and 1 
   )
   expect_equal(CalculateReturns(clean_stock_prices, congressional_trades), expected_output, ignore_attr=TRUE)
 })
+
+test_that("CalculateReturns works on a test case with 1 Representative having > 1 Trade", {
+  origin_date <- as.Date("2023-01-01")
+  offset <- 15  # Number of days to the second trade from the first.
+  clean_stock_prices <- data.frame(
+    "TransactionDate" = c(
+      origin_date,
+      origin_date + offset,
+      origin_date + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
+      origin_date + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
+      origin_date + offset + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
+      origin_date + offset + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS
+    ),
+    "Ticker" = "A",
+    "Close" = c(100, 50, 110, 150, 75, 100)
+  )
+  congressional_trades <- data.frame(
+    "Representative" = "Joseph",
+    "Ticker" = "A",
+    "TransactionDate" = c(origin_date, origin_date + offset),
+    "ShortTermReturnDate" = c(
+      origin_date + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
+      origin_date + offset + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS
+    ),
+    "LongTermReturnDate" = c(
+      origin_date + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
+      origin_date + offset + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS
+    ),
+    "Transaction" = "Purchase",
+    "Amount" = 1
+  )
+  expected_output <- data.frame(
+    "Ticker" = "A",
+    "TransactionDate" = c(rep(origin_date, 2), rep(origin_date + offset, 2)),
+    "Representative" = "Joseph",
+    "ShortTermReturnDate" = c(
+      rep(origin_date + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS, 2),
+      rep(origin_date + offset + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS, 2)
+    ),
+    "LongTermReturnDate" = c(
+      rep(origin_date + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS, 2),
+      rep(origin_date + offset + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS, 2)
+    ),
+    "Transaction" = "Purchase",
+    "Amount" = 1,
+    "beg_price" = c(100, 100, 50, 50),
+    "end_price" = c(110, 150, 75, 100),
+    "is_short_term_return" = c(TRUE, FALSE, TRUE, FALSE),
+    "return" = c(10, 50, 50, 100)
+  )
+  expect_equal(CalculateReturns(clean_stock_prices, congressional_trades), expected_output, ignore_attr=TRUE)
+})
