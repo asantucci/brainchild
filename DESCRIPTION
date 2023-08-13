@@ -1,0 +1,19 @@
+Package: brainchild
+Type: Package
+Title: Analyzes Congressional Stock Trades
+Version: 0.1.0
+Author: Andreas Santucci, Thomas Rowley
+Maintainer: Thomas Rowley <yourself@somewhere.net>
+Description: Facilitates congressional stock-trades analysis.
+    Ultimately this package is designed to aid in reproducible
+    research.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    bizdays,
+    data.table,
+    magrittr,
+    testthat (>= 3.1.10)
+Config/testthat/edition: 3
+RoxygenNote: 7.2.3
