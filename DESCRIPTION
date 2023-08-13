@@ -3,11 +3,11 @@ Type: Package
 Title: Analyzes Congressional Stock Trades
 Version: 0.1.0
 Author: Andreas Santucci, Thomas Rowley
-Maintainer: Thomas Rowley <yourself@somewhere.net>
+Maintainer: Thomas Rowley <thomasrowley2024@gmail.com>
 Description: Facilitates congressional stock-trades analysis.
     Ultimately this package is designed to aid in reproducible
     research.
-License: What license is it under?
+License: Open Academic License
 Encoding: UTF-8
 LazyData: true
 Imports: 
