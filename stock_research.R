@@ -16,7 +16,7 @@ library(brainchild)
 
 # Set working directory.
 #setwd("/Users/thomas/Desktop/stock_research/")
-
+setwd("C:/Users/asantucci/Desktop/Wyzant/R/Thomas_Brainchild_Project_Finance/")
 lst <- read_excel('congress-trading-all.xlsx', sheet = 'Sheet1')
 
 setDT(lst)
@@ -53,13 +53,14 @@ fnames <- list.files(path = "ticker_data", pattern = "csv$", full.names = TRUE)
 
 bizdays::load_builtin_calendars()
 lst[, TransactionDate := as.Date(TransactionDate)]
-lst[, ShortTermReturnDate := adjust.next(TransactionDate + brainchild::LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS, "weekends")]
-lst[, LongTermReturnDate := adjust.next(TransactionDate + brainchild::LENGTH_OF_LONG_TERM_TRADE_IN_DAYS, "weekends")]
+lst[, ShortTermReturnDate := adjust.next(TransactionDate + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS, "weekends")]
+lst[, LongTermReturnDate := adjust.next(TransactionDate + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS, "weekends")]
 
 shorts <- merge(lst, lst, by.x = c("Ticker", "TransactionDate"), by.y = c("Ticker", "ShortTermReturnDate"))
 longs <- merge(lst, lst, by.x = c("Ticker", "TransactionDate"), by.y = c("Ticker", "LongTermReturnDate"))
 
 lst[, TransactionDate := as.Date(TransactionDate)]
 returns <- lapply(fnames, function(fname) {
-  CalculateReturns(stock_prices=fread(fname) %>% CleanStockPrices(), congressional_trades=lst) %>% rbindlist()
-})
+  print(paste("Now processing", fname))
+  CalculateReturns(stock_prices=fread(fname) %>% CleanStockPrices(), congressional_trades=lst)
+}) %>% rbindlist()
