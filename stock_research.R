@@ -14,9 +14,16 @@ library(bizdays)
 
 library(brainchild)
 
+ANDREAS <- "asantucci"
+THOMAS <- "trowley"
+USER <- readline(prompt=glue("Enter username from set {ANDREAS} OR {THOMAS}: " ))
+
 # Set working directory.
-#setwd("/Users/thomas/Desktop/stock_research/")
-setwd("C:/Users/asantucci/Desktop/Wyzant/R/Thomas_Brainchild_Project_Finance/")
+if (USER == THOMAS) {
+  setwd("/Users/thomas/Desktop/stock_research/")
+} else if (USER == ANDREAS) {
+  setwd("C:/Users/asantucci/Desktop/Wyzant/R/Thomas_Brainchild_Project_Finance/")
+}
 lst <- read_excel('congress-trading-all.xlsx', sheet = 'Sheet1')
 
 setDT(lst)
