@@ -81,8 +81,27 @@ returns <- lapply(fnames, function(fname) {
 #fwrite(returns, "C:/Users/asantucci/Desktop/returns.csv")
 #returns <- fread("C:/Users/asantucci/Desktop/returns.csv")
 
+# Explore missing trades
 unaccounted_representative_trades <- lst[!returns, on = c("TransactionDate", "Ticker", "Representative", "Transaction")]
-unaccounted_representative_trades[!api_errors, on = c("Ticker")]
+CheckMissing <- function(ticker, date) {
+  dt <- fread(glue("ticker_data/{ticker}.csv")) %>%
+    CleanStockPrices()
+  is_date_within_stock_prices <- dt[, date %in% TransactionDate]
+  cat(glue("We checked {ticker}, and DateIsWithinRange = {is_date_within_stock_prices}\n\n"))
+  return(is_date_within_stock_prices)
+}
+
+tickers_to_check <- unaccounted_representative_trades[
+    !api_errors,
+    on = c("Ticker")
+  ][
+    TransactionDate < Sys.Date() - LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
+    .(TransactionDate, Ticker)
+  ] %>%
+  unique()
+
+tickers_to_check[, is_ticker_date_missing_spuriously := mapply(CheckMissing, ticker = Ticker, date = TransactionDate)]
+tickers_to_check[(is_ticker_date_missing_spuriously)]  # Returns 578 ticker-dates for which we supposedly have data...
 
 # Visualize expected returns, excluding outliers.
 bounds <- returns[, quantile(return, probs = c(0.01, 0.99), na.rm = TRUE)]
@@ -96,4 +115,3 @@ ggplot(returns[data.table::between(return, bounds[1], bounds[2])], aes(x = retur
        subtitle = paste("Avg. Short vs. Long term return:", paste(paste0(round(average_return$avg_return, 2), "%"), collapse = ", ")))
 
 ggsave("plots/expected_returns.png", width = 11, height = 8.5)
-
