@@ -108,14 +108,16 @@ CalculateReturns <- function(stock_prices, congressional_trades) {
   longs <- merge(stock_prices, stock_prices, by.x = c("Ticker", "TransactionDate"), by.y = c("Ticker", "LongTermReturnDate"),
                  suffixes = c(".future", ".present"))
   shorts[, short_term_percent_return := 100*(Close.future / Close.present - 1)]
+  shorts[, short_term_profit_in_dollars := Close.future - Close.present]
   longs[, long_term_percent_return := 100*(Close.future / Close.present - 1)]
+  longs[, long_term_profit_in_dollars := Close.future - Close.present]
   # As of this point, the "TransactionDate" column in short-and-long term returns data.frame's correspond to the
   # closing date relative to the congressional trade and the time window (30 or 180 days). To match back up with
   # congressional trades, we need to align dates (by subtracting 30 or 180 days).
   shorts[, exact_short_term_date_diff := TransactionDate - TransactionDate.present]
   longs[, exact_long_term_date_diff := TransactionDate - TransactionDate.present]
-  returns <- rbind(shorts[, .(Ticker, TransactionDate = TransactionDate - exact_short_term_date_diff, beg_period_price = Close.present, end_price = Close.future, is_short_term_return = TRUE, return = short_term_percent_return)],
-                   longs[, .(Ticker, TransactionDate = TransactionDate - exact_long_term_date_diff, beg_period_price = Close.present, end_price = Close.future, is_short_term_return = FALSE, return = long_term_percent_return)], fill = TRUE)
+  returns <- rbind(shorts[, .(Ticker, TransactionDate = TransactionDate - exact_short_term_date_diff, beg_period_price = Close.present, end_price = Close.future, is_short_term_return = TRUE, return = short_term_percent_return, profit_in_dollars = short_term_profit_in_dollars)],
+                   longs[, .(Ticker, TransactionDate = TransactionDate - exact_long_term_date_diff, beg_period_price = Close.present, end_price = Close.future, is_short_term_return = FALSE, return = long_term_percent_return, profit_in_dollars = long_term_profit_in_dollars)], fill = TRUE)
   results <- merge(congressional_trades, returns, by = c("Ticker", "TransactionDate"))
   return(results)
 }
