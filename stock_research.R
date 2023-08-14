@@ -88,7 +88,9 @@ CheckMissing <- function(ticker, date) {
     CleanStockPrices()
   is_date_within_stock_prices <- dt[, date %in% TransactionDate]
   cat(glue("We checked {ticker}, and DateIsWithinRange = {is_date_within_stock_prices}\n\n"))
-  return(is_date_within_stock_prices)
+  is_closing_price_available <- dt[date == TransactionDate | date == TransactionDate + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS | date == TransactionDate + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS, sum(!is.na(Close)) == 3]
+  cat(glue("\tClosing Price Available = {is_closing_price_available}"))
+  return(is_date_within_stock_prices & is_closing_price_available)
 }
 
 tickers_to_check <- unaccounted_representative_trades[
@@ -100,8 +102,11 @@ tickers_to_check <- unaccounted_representative_trades[
   ] %>%
   unique()
 
-tickers_to_check[, is_ticker_date_missing_spuriously := mapply(CheckMissing, ticker = Ticker, date = TransactionDate)]
-tickers_to_check[(is_ticker_date_missing_spuriously)]  # Returns 578 ticker-dates for which we supposedly have data...
+tickers_to_check[, is_ticker_date_missing_spuriously := mapply(CheckMissing, ticker = Ticker, date = TransactionDate) %>%
+                   sapply(function(x) length(x) && x)]
+# There are ~1k ticker-dates for which there were congressional-trades but we don't have data.
+tickers_to_check[, sum(!is_ticker_date_missing_spuriously)]
+tickers_to_check[(is_ticker_date_missing_spuriously)]  # Returns only 68 ticker-dates for which we supposedly have data...
 
 # Visualize expected returns, excluding outliers.
 bounds <- returns[, quantile(return, probs = c(0.01, 0.99), na.rm = TRUE)]
