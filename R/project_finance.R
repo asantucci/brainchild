@@ -116,8 +116,8 @@ CalculateReturns <- function(stock_prices, congressional_trades) {
   # congressional trades, we need to align dates (by subtracting 30 or 180 days).
   shorts[, exact_short_term_date_diff := TransactionDate - TransactionDate.present]
   longs[, exact_long_term_date_diff := TransactionDate - TransactionDate.present]
-  returns <- rbind(shorts[, .(Ticker, TransactionDate = TransactionDate - exact_short_term_date_diff, beg_period_price = Close.present, end_price = Close.future, is_short_term_return = TRUE, return = short_term_percent_return, profit_in_dollars = short_term_profit_in_dollars)],
-                   longs[, .(Ticker, TransactionDate = TransactionDate - exact_long_term_date_diff, beg_period_price = Close.present, end_price = Close.future, is_short_term_return = FALSE, return = long_term_percent_return, profit_in_dollars = long_term_profit_in_dollars)], fill = TRUE)
-  results <- merge(congressional_trades, returns, by = c("Ticker", "TransactionDate"))
+  returns <- rbind(shorts[, .(Ticker, Transaction = Transaction.present, TransactionDate = TransactionDate - exact_short_term_date_diff, beg_period_price = Close.present, end_price = Close.future, is_short_term_return = TRUE, return = short_term_percent_return, profit_in_dollars = short_term_profit_in_dollars)],
+                   longs[, .(Ticker, Transaction = Transaction.present, TransactionDate = TransactionDate - exact_long_term_date_diff, beg_period_price = Close.present, end_price = Close.future, is_short_term_return = FALSE, return = long_term_percent_return, profit_in_dollars = long_term_profit_in_dollars)], fill = TRUE)
+  results <- merge(congressional_trades, returns)
   return(results)
 }

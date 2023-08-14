@@ -39,6 +39,7 @@ test_that("CalculateReturns works on a simple test case: 1 Representative and 1 
   congressional_trades <- data.frame(
     "Representative" = "Joseph",
     "Ticker" = "A",
+    "Transaction" = "Purchase",
     "TransactionDate" = as.Date("2023-01-01"),
     "ShortTermReturnDate" = origin_date + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
     "LongTermReturnDate" = origin_date + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
@@ -47,6 +48,7 @@ test_that("CalculateReturns works on a simple test case: 1 Representative and 1 
   )
   expected_output <- data.frame(
     "Ticker" = "A",
+    "Transaction" = "Purchase",
     "TransactionDate" = as.Date("2023-01-01"),
     "Representative" = "Joseph",
     "ShortTermReturnDate" = origin_date + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
@@ -80,6 +82,7 @@ test_that("CalculateReturns works on a test case with 1 Representative having > 
   congressional_trades <- data.frame(
     "Representative" = "Joseph",
     "Ticker" = "A",
+    "Transaction" = "Purchase",
     "TransactionDate" = c(origin_date, origin_date + offset),
     "ShortTermReturnDate" = c(
       origin_date + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
@@ -89,11 +92,11 @@ test_that("CalculateReturns works on a test case with 1 Representative having > 
       origin_date + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
       origin_date + offset + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS
     ),
-    "Transaction" = "Purchase",
     "Amount" = 1
   )
   expected_output <- data.frame(
     "Ticker" = "A",
+    "Transaction" = "Purchase",
     "TransactionDate" = c(rep(origin_date, 2), rep(origin_date + offset, 2)),
     "Representative" = "Joseph",
     "ShortTermReturnDate" = c(
@@ -104,7 +107,6 @@ test_that("CalculateReturns works on a test case with 1 Representative having > 
       rep(origin_date + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS, 2),
       rep(origin_date + offset + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS, 2)
     ),
-    "Transaction" = "Purchase",
     "Amount" = 1,
     "beg_price" = c(100, 100, 50, 50),
     "end_price" = c(110, 150, 75, 100),
@@ -132,6 +134,7 @@ test_that("CalculateReturns works on a test case with more than 1 Representative
   congressional_trades <- data.frame(
     "Representative" = c("Joseph", "Anna", "Joseph", "Anna"),
     "Ticker" = c("J", "A", "J", "A"),
+    "Transaction" = "Purchase",
     "TransactionDate" = c(rep(origin_dates[1], 2), rep(origin_dates[2], 2)),
     "ShortTermReturnDate" = c(
       origin_dates[1] + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS,
@@ -145,11 +148,11 @@ test_that("CalculateReturns works on a test case with more than 1 Representative
       origin_dates[2] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
       origin_dates[2] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS
     ),
-    "Transaction" = "Purchase",
     "Amount" = 1
   )
   expected_output <- data.frame(
     "Ticker" = c("A", "A", "J", "J"),
+    "Transaction" = "Purchase",
     "TransactionDate" = c(rep(origin_dates[1], 2), rep(origin_dates[2], 2)),
     "Representative" = c("Anna", "Anna", "Joseph", "Joseph"),
     "ShortTermReturnDate" = c(
@@ -164,7 +167,6 @@ test_that("CalculateReturns works on a test case with more than 1 Representative
       origin_dates[2] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS,
       origin_dates[2] + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS
     ),
-    "Transaction" = "Purchase",
     "Amount" = 1,
     "beg_price" = c(100, 100, 1000, 1000),
     "end_price" = c(110, 150, 900, 1100),
