@@ -122,6 +122,7 @@ ggplot(returns[data.table::between(return, bounds[1], bounds[2])], aes(x = retur
 ggsave("plots/expected_returns.png", width = 11, height = 8.5)
 
 # Reshape data to wide(r) format, with short and long-term returns in separate columns.
-returns_wide <- dcast(data = returns, Ticker + TransactionDate + Representative ~ is_short_term_return, value.var = 'return', fun.aggregate = mean)
+returns[, trade_id := 1:.N, by = .(Ticker, TransactionDate, Representative, is_short_term_return)]
+returns_wide <- dcast(data = returns, Ticker + TransactionDate + Representative + trade_id ~ is_short_term_return, value.var = 'return')
 setnames(returns_wide, c("FALSE", "TRUE"), c("short_term_return", "long_term_return"))
 
