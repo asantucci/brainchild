@@ -45,7 +45,11 @@ if (!dir.exists("ticker_data")) {
 #already_scraped <- list.files(path = "ticker_data") %>% gsub("\\.csv", "", .)
 #ticker_timelines <- ticker_timelines[!Ticker %in% already_scraped]
 ticker_timelines[, end_date := as.Date(end_date)]
-mapply(GetDataForTicker, ticker = ticker_timelines$Ticker, beg_date = ticker_timelines$beg_date, end_date = pmin(ticker_timelines$end_date + 180, Sys.Date() - 10), MoreArgs = list(path_prefix = "ticker_data"))
+downloaded_tickers <- list.files("ticker_data") %>% gsub("\\.csv", "", .)
+to_download <- ticker_timelines[!Ticker %in% downloaded_tickers]
+mapply(GetDataForTicker, ticker = to_download$Ticker, beg_date = to_download$beg_date, end_date = pmin(to_download$end_date + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS, Sys.Date() - 10), MoreArgs = list(path_prefix = "ticker_data"))
+downloaded_tickers <- list.files("ticker_data") %>% gsub("\\.csv", "", .)
+api_errors <- ticker_timelines[!Ticker %in% downloaded_tickers]
 
 # Collect ticker data into a common DF.
 fnames <- list.files(path = "ticker_data", pattern = "csv$", full.names = TRUE)
@@ -65,8 +69,11 @@ returns <- lapply(fnames, function(fname) {
   CalculateReturns(stock_prices=fread(fname) %>% CleanStockPrices(), congressional_trades=lst)
 }) %>% rbindlist()
 
-#fwrite(returns, "returns.csv")
+#fwrite(returns, "C:/Users/asantucci/Desktop/returns.csv")
 #returns <- fread("C:/Users/asantucci/Desktop/returns.csv")
+
+unaccounted_representative_trades <- lst[!returns, on = c("TransactionDate", "Ticker", "Representative", "Transaction")]
+unaccounted_representative_trades[!api_errors, on = c("Ticker")]
 
 # Visualize expected returns, excluding outliers.
 bounds <- returns[, quantile(return, probs = c(0.01, 0.99), na.rm = TRUE)]

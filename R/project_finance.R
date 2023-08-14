@@ -52,7 +52,7 @@ GetDataForTicker <- function(path_prefix, ticker, beg_date, end_date) {
 CleanStockPrices <- function(stock_prices) {
   setDT(stock_prices)
   ticker_string <- colnames(stock_prices)[2] %>% gsub("\\.Open", "", .)
-  stock_prices[, ticker := ticker_string]
+  stock_prices[, Ticker := ticker_string]
   # Clean column names.
   cols <- c("Open", "High", "Low", "Close", "Volume", "Adjusted")
   setnames(stock_prices,
@@ -104,9 +104,9 @@ CalculateReturns <- function(stock_prices, congressional_trades) {
   # We need all.y = TRUE in the subsequent command to ensure that we can calculate future returns on any given date.
   stock_prices <- merge(congressional_trades, stock_prices, all.y = TRUE)
   shorts <- merge(stock_prices, stock_prices, by.x = c("Ticker", "TransactionDate"), by.y = c("Ticker", "ShortTermReturnDate"),
-                  suffixes = c(".future", ".present"), all = TRUE)
+                  suffixes = c(".future", ".present"))
   longs <- merge(stock_prices, stock_prices, by.x = c("Ticker", "TransactionDate"), by.y = c("Ticker", "LongTermReturnDate"),
-                 suffixes = c(".future", ".present"), all = TRUE)
+                 suffixes = c(".future", ".present"))
   shorts[, short_term_percent_return := 100*(Close.future / Close.present - 1)]
   longs[, long_term_percent_return := 100*(Close.future / Close.present - 1)]
   # As of this point, the "TransactionDate" column in short-and-long term returns data.frame's correspond to the
@@ -116,6 +116,6 @@ CalculateReturns <- function(stock_prices, congressional_trades) {
   longs[, exact_long_term_date_diff := TransactionDate - TransactionDate.present]
   returns <- rbind(shorts[, .(Ticker, TransactionDate = TransactionDate - exact_short_term_date_diff, beg_period_price = Close.present, end_price = Close.future, is_short_term_return = TRUE, return = short_term_percent_return)],
                    longs[, .(Ticker, TransactionDate = TransactionDate - exact_long_term_date_diff, beg_period_price = Close.present, end_price = Close.future, is_short_term_return = FALSE, return = long_term_percent_return)], fill = TRUE)
-  results <- merge(congressional_trades, returns, by = c("Ticker", "TransactionDate"), all.x = TRUE)
+  results <- merge(congressional_trades, returns, by = c("Ticker", "TransactionDate"))
   return(results)
 }
