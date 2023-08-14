@@ -104,7 +104,7 @@ tickers_to_check <- unaccounted_representative_trades[
 
 tickers_to_check[, is_ticker_date_missing_spuriously := mapply(CheckMissing, ticker = Ticker, date = TransactionDate) %>%
                    sapply(function(x) length(x) && x)]
-# There are ~1k ticker-dates for which there were congressional-trades but we don't have data.
+# There are ~1.8k ticker-dates for which there were congressional-trades but we don't have data.
 tickers_to_check[, sum(!is_ticker_date_missing_spuriously)]
 tickers_to_check[(is_ticker_date_missing_spuriously)]  # Returns only 68 ticker-dates for which we supposedly have data...
 
@@ -120,3 +120,8 @@ ggplot(returns[data.table::between(return, bounds[1], bounds[2])], aes(x = retur
        subtitle = paste("Avg. Short vs. Long term return:", paste(paste0(round(average_return$avg_return, 2), "%"), collapse = ", ")))
 
 ggsave("plots/expected_returns.png", width = 11, height = 8.5)
+
+# Reshape data to wide(r) format, with short and long-term returns in separate columns.
+returns_wide <- dcast(data = returns, Ticker + TransactionDate + Representative ~ is_short_term_return, value.var = 'return', fun.aggregate = mean)
+setnames(returns_wide, c("FALSE", "TRUE"), c("short_term_return", "long_term_return"))
+
