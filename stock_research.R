@@ -54,7 +54,9 @@ if (!dir.exists("ticker_data")) {
 ticker_timelines[, end_date := as.Date(end_date)]
 downloaded_tickers <- list.files("ticker_data") %>% gsub("\\.csv", "", .)
 to_download <- ticker_timelines[!Ticker %in% downloaded_tickers]
-mapply(GetDataForTicker, ticker = to_download$Ticker, beg_date = to_download$beg_date, end_date = pmin(to_download$end_date + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS, Sys.Date() - 10), MoreArgs = list(path_prefix = "ticker_data"))
+if (0) {
+  mapply(GetDataForTicker, ticker = to_download$Ticker, beg_date = to_download$beg_date, end_date = pmin(to_download$end_date + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS, Sys.Date() - 10), MoreArgs = list(path_prefix = "ticker_data"))
+}
 downloaded_tickers <- list.files("ticker_data") %>% gsub("\\.csv", "", .)
 api_errors <- ticker_timelines[!Ticker %in% downloaded_tickers]
 
