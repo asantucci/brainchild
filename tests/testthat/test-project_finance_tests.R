@@ -59,8 +59,8 @@ test_that("CalculateReturns works on a simple test case: 1 Representative and 1 
     "beg_price" = 100,
     "end_price" = c(110, 150),
     "is_short_term_return" = c(TRUE, FALSE),
-    "return" = c(10, 50),
-    "profit_in_dollars" = c(10, 50)
+    "return_percent_per_share" = c(10, 50),
+    "profit_in_dollars_per_share" = c(10, 50)
   )
   expect_equal(CalculateReturns(clean_stock_prices, congressional_trades), expected_output, ignore_attr=TRUE)
 })
@@ -112,8 +112,8 @@ test_that("CalculateReturns works on a test case with 1 Representative having > 
     "beg_price" = c(100, 100, 50, 50),
     "end_price" = c(110, 150, 75, 100),
     "is_short_term_return" = c(TRUE, FALSE, TRUE, FALSE),
-    "return" = c(10, 50, 50, 100),
-    "profit_in_dollars" = c(10, 50, 25, 50)
+    "return_percent_per_share" = c(10, 50, 50, 100),
+    "profit_in_dollars_per_share" = c(10, 50, 25, 50)
   )
   expect_equal(CalculateReturns(clean_stock_prices, congressional_trades), expected_output, ignore_attr=TRUE)
 })
@@ -172,8 +172,8 @@ test_that("CalculateReturns works on a test case with more than 1 Representative
     "beg_price" = c(100, 100, 1000, 1000),
     "end_price" = c(110, 150, 900, 1100),
     "is_short_term_return" = c(TRUE, FALSE),
-    "return" = c(10, 50, -10, 10),
-    "profit_in_dollars" = c(10, 50, -100, 100)
+    "return_percent_per_share" = c(10, 50, -10, 10),
+    "profit_in_dollars_per_share" = c(10, 50, -100, 100)
   )
   expect_equal(CalculateReturns(clean_stock_prices, congressional_trades), expected_output, ignore_attr=TRUE)
 })
