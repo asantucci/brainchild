@@ -121,3 +121,16 @@ CalculateReturns <- function(stock_prices, congressional_trades) {
   results <- merge(congressional_trades, returns)
   return(results)
 }
+
+#' Checks whether a missing entry is truthfully missing or available.
+#'
+#' @param ticker_dt A data.table describing cleaned, daily stock
+#'     price data, as output by CleanStockPrices
+#' @export
+IsTickerDateAvailableForExpectedReturns <- function(ticker_dt, date) {
+  is_date_within_stock_prices <- ticker_dt[, date %in% TransactionDate]
+  cat(glue("We checked {ticker_dt$ticker %>% unique}, and DateIsWithinRange = {is_date_within_stock_prices}\n\n"))
+  is_closing_price_available <- ticker_dt[TransactionDate == date | TransactionDate == date + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS | TransactionDate == date + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS, sum(!is.na(Close)) == 3]
+  cat(glue("\tClosing Price Available = {is_closing_price_available}"))
+  return(is_date_within_stock_prices & is_closing_price_available)
+}

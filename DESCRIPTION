@@ -13,6 +13,7 @@ LazyData: true
 Imports: 
     bizdays,
     data.table,
+    glue,
     magrittr,
     testthat (>= 3.1.10)
 Config/testthat/edition: 3

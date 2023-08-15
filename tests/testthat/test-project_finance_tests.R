@@ -1,5 +1,6 @@
 library(brainchild)
 library(data.table)
+library(glue)
 library(testthat)
 
 test_that("ConvertRange works as intended.", {
@@ -175,4 +176,38 @@ test_that("CalculateReturns works on a test case with more than 1 Representative
     "profit_in_dollars" = c(10, 50, -100, 100)
   )
   expect_equal(CalculateReturns(clean_stock_prices, congressional_trades), expected_output, ignore_attr=TRUE)
+})
+
+test_that("IsTickerDateAvailable detects when expected returns unavailable", {
+  raw_stock_prices <- structure(
+    list(Date = "2022-01-14",
+         X0QZI.IL.Open = 180,
+         X0QZI.IL.High = 200,
+         X0QZI.IL.Low = 174,
+         X0QZI.IL.Close = 185,
+         X0QZI.IL.Volume = 100,
+         X0QZI.IL.Adjusted = 170),
+    class = "data.frame"
+  )
+  setDT(raw_stock_prices)
+  stock_prices <- CleanStockPrices(raw_stock_prices)
+  expect_false(IsTickerDateAvailableForExpectedReturns(stock_prices, as.Date("2022-01-14")))
+})
+
+test_that("IsTickerDateAvailable detects when expected returns available", {
+  origin_date <- as.Date("2022-01-14")
+  raw_stock_prices <- data.frame(
+    Date = c(origin_date, origin_date + LENGTH_OF_SHORT_TERM_TRADE_IN_DAYS, origin_date + LENGTH_OF_LONG_TERM_TRADE_IN_DAYS),
+    X0QZI.IL.Open = 180,
+    X0QZI.IL.High = 200,
+    X0QZI.IL.Low = 174,
+    X0QZI.IL.Close = 185,
+    X0QZI.IL.Volume = 100,
+    X0QZI.IL.Adjusted = 170
+  )
+  setDT(raw_stock_prices)
+  stock_prices <- CleanStockPrices(raw_stock_prices)
+  expect_true(IsTickerDateAvailableForExpectedReturns(stock_prices, origin_date))
+  expect_false(IsTickerDateAvailableForExpectedReturns(stock_prices, origin_date - 1))
+  expect_false(IsTickerDateAvailableForExpectedReturns(stock_prices, origin_date + 1))
 })
