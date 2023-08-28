@@ -134,3 +134,41 @@ IsTickerDateAvailableForExpectedReturns <- function(ticker_dt, date) {
   cat(glue("\tClosing Price Available = {is_closing_price_available}"))
   return(is_date_within_stock_prices & is_closing_price_available)
 }
+
+#' Builds a Portfolio of Transactions.
+#'
+#'
+#BuildPortfolio = function(representative, congressional_trades) {
+#  OmitSalesBeforePurchasesByTicker(congressional_trades[representative])
+#  setorder(congressional_trades[representative], date)
+#  num_shares = Accumulate(shares.lo_price/price-on-date-of-trade)
+#  asset_holdings = Accumulate(ifelse(Transaction == “Purchase”, 1, -1))    CalculateFinalReturn(CalculateCurrentPriceOfAllHeldShares(current_price=asset_holdings[LAST_DATE_OBSERVED_WITH_{SALE|PURCHASE?}]) / (vector-of-Original-price-of-share-prices-per-purchase)
+#}
+
+#' Constructs a DataFrame with the subset of data that excludes sales before first-purchase.
+#'
+#' @param congressional_trades A data.frame describing congressional trades.
+#' @return A filtered data.frame containing only data that excludes sales before first-purchase.
+OmitSalesBeforePurchasesByRepresentativeAndTicker <- function(congressional_trades) {
+  first_purchases <- congressional_trades[, .SD[Transaction == 'Purchase', .(first_purchase = min(TransactionDate))], by = .(Representative, Ticker)]
+  annotated_trades <- merge(congressional_trades, first_purchases, all.x = TRUE)
+  print(glue("There are {annotated_trades[, sum(is.na(first_purchase))]} instances of sales with no preceding purchase in our data."))
+  return(annotated_trades[!is.na(first_purchase) & !(Transaction == "Sale" & TransactionDate < first_purchase)])
+}
+
+#' Accumulate a portfolio of trades by congress-person.
+#'
+#' @param congressional_trades A DataFrame containing pre-processed
+#'     congressional trades. I.e. representative's making purchases or sales
+#'     of particular assets (Tickers) for specific amounts on specific days.
+#' @param stock_prices A DataFrame describing stock-prices for a _single_
+#'     ticker.
+#' @return A DataFrame describing the cumulative number of shares
+#'     that the Representative is holding.
+AccumulatePortfolio <- function(congressional_trades, stock_prices) {
+  trades <- merge(congressional_trades, stock_prices)
+  trades[, shares := LowAmount / High]
+  setorder(trades, Representative, TransactionDate)
+  trades[, cum_shares := cumsum(ifelse(Transaction == "Purchase", shares, -shares)), by = .(Representative, Ticker)]
+  return(trades)
+}

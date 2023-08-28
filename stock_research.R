@@ -116,10 +116,13 @@ ggsave("plots/expected_returns.png", width = 11, height = 8.5)
 
 # Reshape data to wide(r) format, with short and long-term returns in separate columns.
 returns[, trade_id := 1:.N, by = .(Ticker, TransactionDate, Representative, is_short_term_return)]
-returns_wide <- dcast(data = returns, Ticker + TransactionDate + Representative + trade_id ~ is_short_term_return, value.var = c('return_percent_per_share', 'profit_in_dollars_per_share'), fill = NA)
+# returns_wide <- dcast(data = returns, Ticker + TransactionDate + Representative + trade_id ~ is_short_term_return, value.var = c('return_percent_per_share', 'profit_in_dollars_per_share'), fill = NA)
 setnames(returns_wide, gsub("FALSE", "long_term", colnames(returns_wide)))
 setnames(returns_wide, gsub("TRUE", "short_term", colnames(returns_wide)))
 
 
-
+# Build Portfolios.
+portfolios <- lapply(fnames, function(file)
+  AccumulatePortfolio(lst, fread(file) %>% CleanStockPrices())
+) %>% rbindlist()
 
