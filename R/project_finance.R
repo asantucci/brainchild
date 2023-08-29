@@ -175,13 +175,29 @@ AccumulatePortfolio <- function(congressional_trades, stock_prices) {
 
 #' Takes in a portfolio of stock trades and calculates profit by Representative and Ticker.
 #'
+#' Makes a cautious estimate by assuming that the Representative trades the asset at time
+#' of day when the price hits a daily-low, and that the Representative uses a composite
+#' average of their portfolio (for that asset) to complete the Sale (*i.e. we do not
+#' assume that the Representative liquidates the Asset[s] which they acquired _most_
+#' cheaply).
+#'
 #' @param portfolios A data.table obtained from AccumulatePortfolio.
 #' @return A data.table with an additional column, "profit" (measured in dollars).
 CalculateReturnsViaPortfolio <- function(portfolios) {
   setorder(portfolios, Representative, Ticker, TransactionDate)
+  # Calculate a notion of a rolling average cost per Representative x Ticker.
+  # Note that we'll assume that the asset was purchased during a time-of-day
+  # that corresponds to the Asset being _most_ expensive, helping to ensure
+  # a cautious estimate of profits.
   portfolios[Transaction == "Purchase", avg_cost := cumsum(High) / 1:.N, by = .(Representative, Ticker)]
+  # Since the above expression only fills in entries for Purchases, "carry-forward" the "last observation"
+  # for each Representative x Ticker such that Sale-entries have the most recent average for that
+  # Representative x Ticker combination.
   portfolios[, avg_cost := nafill(avg_cost, type = "locf"), by = .(Representative, Ticker)]
-  portfolios[is.na(avg_cost), avg_cost := locf()]
+  # For each instance where there is a Sale-type transaction, calculate a Return, defined as
+  # the number of shares sold multiplied by the (expected) return per share.
+  # Note that in making this estimate of return per share, we use assume the Representative
+  # sells at the daily Low.
   portfolios[Transaction == "Sale" & cum_shares >= 0, profit := shares * (Low - avg_cost)]
   return(portfolios)
 }
