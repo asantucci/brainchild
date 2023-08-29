@@ -124,5 +124,17 @@ setnames(returns_wide, gsub("TRUE", "short_term", colnames(returns_wide)))
 # Build Portfolios.
 portfolios <- lapply(fnames, function(file)
   AccumulatePortfolio(lst, fread(file) %>% CleanStockPrices())
-) %>% rbindlist()
+) %>% rbindlist() %>%
+  CalculateReturnsViaPortfolio()
+
+avg_profit <- portfolios[, mean(profit, na.rm=TRUE)]
+med_profit <- portfolios[, quantile(profit, probs = 0.5, na.rm = TRUE)]
+ggplot(portfolios, aes(x = profit)) +
+  geom_histogram(bins = 100) +
+  scale_x_continuous(limits = quantile(portfolios$profit, probs = c(0.05, 0.95), na.rm = TRUE)) +
+  labs(
+    title = glue("The average congressional trade yields a profit of ${round(avg_profit, 2)}\n",
+                 "The median still earns a profit of ${round(med_profit, 2)}"),
+    subtitle = "Is this expected given the market conditions?"
+  )
 

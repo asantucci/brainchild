@@ -167,8 +167,21 @@ OmitSalesBeforePurchasesByRepresentativeAndTicker <- function(congressional_trad
 #'     that the Representative is holding.
 AccumulatePortfolio <- function(congressional_trades, stock_prices) {
   trades <- merge(congressional_trades, stock_prices)
-  trades[, shares := LowAmount / High]
-  setorder(trades, Representative, TransactionDate)
+  trades[, shares := LowAmount / High]  # Under-estimate.
+  setorder(trades, Representative, Ticker, TransactionDate)  # Critical to execute sorting before cumulative sum!
   trades[, cum_shares := cumsum(ifelse(Transaction == "Purchase", shares, -shares)), by = .(Representative, Ticker)]
   return(trades)
+}
+
+#' Takes in a portfolio of stock trades and calculates profit by Representative and Ticker.
+#'
+#' @param portfolios A data.table obtained from AccumulatePortfolio.
+#' @return A data.table with an additional column, "profit" (measured in dollars).
+CalculateReturnsViaPortfolio <- function(portfolios) {
+  setorder(portfolios, Representative, Ticker, TransactionDate)
+  portfolios[Transaction == "Purchase", avg_cost := cumsum(High) / 1:.N, by = .(Representative, Ticker)]
+  portfolios[, avg_cost := nafill(avg_cost, type = "locf"), by = .(Representative, Ticker)]
+  portfolios[is.na(avg_cost), avg_cost := locf()]
+  portfolios[Transaction == "Sale" & cum_shares >= 0, profit := shares * (Low - avg_cost)]
+  return(portfolios)
 }
