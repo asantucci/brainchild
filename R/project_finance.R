@@ -149,6 +149,7 @@ IsTickerDateAvailableForExpectedReturns <- function(ticker_dt, date) {
 #'
 #' @param congressional_trades A data.frame describing congressional trades.
 #' @return A filtered data.frame containing only data that excludes sales before first-purchase.
+#' @export
 OmitSalesBeforePurchasesByRepresentativeAndTicker <- function(congressional_trades) {
   first_purchases <- congressional_trades[, .SD[Transaction == 'Purchase', .(first_purchase = min(TransactionDate))], by = .(Representative, Ticker)]
   annotated_trades <- merge(congressional_trades, first_purchases, all.x = TRUE)
@@ -165,6 +166,7 @@ OmitSalesBeforePurchasesByRepresentativeAndTicker <- function(congressional_trad
 #'     ticker.
 #' @return A DataFrame describing the cumulative number of shares
 #'     that the Representative is holding.
+#' @export
 AccumulatePortfolio <- function(congressional_trades, stock_prices) {
   trades <- merge(congressional_trades, stock_prices)
   trades[, shares := LowAmount / High]  # Under-estimate.
@@ -183,6 +185,7 @@ AccumulatePortfolio <- function(congressional_trades, stock_prices) {
 #'
 #' @param portfolios A data.table obtained from AccumulatePortfolio.
 #' @return A data.table with an additional column, "profit" (measured in dollars).
+#' @export
 CalculateReturnsViaPortfolio <- function(portfolios) {
   setorder(portfolios, Representative, Ticker, TransactionDate)
   # Calculate a notion of a rolling average cost per Representative x Ticker.
