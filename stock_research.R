@@ -101,26 +101,6 @@ tickers_to_check[, is_ticker_data_available_for_calculating_expected_returns :=
 tickers_to_check[, sum(!is_ticker_data_available_for_calculating_expected_returns)]
 tickers_to_check[(is_ticker_data_available_for_calculating_expected_returns)]  # Returns only 68 ticker-dates for which we supposedly have data...
 
-# Visualize expected returns, excluding outliers.
-bounds <- returns[, quantile(return, probs = c(0.01, 0.99), na.rm = TRUE)]
-average_return <- returns[data.table::between(return, bounds[1], bounds[2]),
-                          .(avg_return = mean(return, na.rm = TRUE)), by = is_short_term_return]
-returns[, is_short_term_return := as.factor(is_short_term_return)]
-ggplot(returns[data.table::between(return, bounds[1], bounds[2])], aes(x = return, fill = is_short_term_return)) +
-  geom_histogram(bins = 100) +
-  scale_y_continuous() +
-  labs(title = "Univariate Distribution of Expected Returns",
-       subtitle = paste("Avg. Short vs. Long term return:", paste(paste0(round(average_return$avg_return, 2), "%"), collapse = ", ")))
-
-ggsave("plots/expected_returns.png", width = 11, height = 8.5)
-
-# Reshape data to wide(r) format, with short and long-term returns in separate columns.
-returns[, trade_id := 1:.N, by = .(Ticker, TransactionDate, Representative, is_short_term_return)]
-# returns_wide <- dcast(data = returns, Ticker + TransactionDate + Representative + trade_id ~ is_short_term_return, value.var = c('return_percent_per_share', 'profit_in_dollars_per_share'), fill = NA)
-setnames(returns_wide, gsub("FALSE", "long_term", colnames(returns_wide)))
-setnames(returns_wide, gsub("TRUE", "short_term", colnames(returns_wide)))
-
-
 # Build Portfolios.
 portfolios <- lapply(fnames, function(file)
   AccumulatePortfolio(lst, fread(file) %>% CleanStockPrices())
