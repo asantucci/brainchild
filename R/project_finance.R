@@ -201,3 +201,34 @@ CalculateReturnsViaPortfolio <- function(portfolios) {
   portfolios[Transaction == "Sale" & cum_shares >= 0, profit := shares * (Low - avg_cost)]
   return(portfolios)
 }
+
+ScrapeTimeServed <- function(url = "https://en.wikipedia.org/wiki/Mitch_McConnell") {
+  html <- rvest::read_html(url) %>% htmlTreeParse(useInternalNodes = TRUE)
+  # Obtained using a XPath copy within Inspector.
+  info_tbl <- xpathSApply(xmlRoot(html), path='/html/body/div[2]/div/div[3]/main/div[3]/div[3]/div[1]/table[1]', xmlValue)
+  date_regex <- paste0(
+    "(",
+    paste(month.name, collapse = "|"),
+    ")",
+  " [0-9]+, [0-9]{4}"
+  )
+  past_terms <- gregexpr(
+    pattern = paste0(
+      "In office",
+      date_regex,
+      ".{1,3}",
+      date_regex
+    ),
+    text = info_tbl
+  ) %>%
+    regmatches(info_tbl, .) %>%
+    sapply(gsub, pattern = "In office", replacement = "") %>%
+    sapply(gsub, pattern = paste0("(", date_regex, ")", ".{1,3}", "(", date_regex, ")"), replacement = "\\1 - \\3") %>%
+    strsplit(split = " - ")
+    time_served_in_days <- lapply(past_terms, function(term_periods) {
+      beg_term = as.Date(term_periods[1], format = "%b %d, %Y")
+      end_term = as.Date(term_periods[2], format = "%b %d, %Y")
+      return(end_term - beg_term)
+    }) %>% Reduce(f = sum, x = .)
+    return(time_served_in_days)
+}
