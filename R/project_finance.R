@@ -205,33 +205,51 @@ CalculateReturnsViaPortfolio <- function(portfolios) {
   return(portfolios)
 }
 
+#' Scrapes the amount of time-served as a representative (in days).
+#'
+#' @param url A string describing a Wikipedia page for a congressional/house
+#'     representative.
+#' @return A time-delta (in days) describing the total amount of time served
+#'     in some sort of political offiliation, as stated on Wikipedia.
 ScrapeTimeServed <- function(url = "https://en.wikipedia.org/wiki/Mitch_McConnell") {
   html <- rvest::read_html(url) %>% htmlTreeParse(useInternalNodes = TRUE)
   # Obtained using a XPath copy within Inspector.
   info_tbl <- xpathSApply(xmlRoot(html), path='/html/body/div[2]/div/div[3]/main/div[3]/div[3]/div[1]/table[1]', xmlValue)
+  # Allow for any month, followed by a day, followed by a year.
   date_regex <- paste0(
     "(",
     paste(month.name, collapse = "|"),
     ")",
   " [0-9]+, [0-9]{4}"
   )
+  # The sentinel flag we look for is "In office", indicating time-served.
   past_terms <- gregexpr(
     pattern = paste0(
       "In office",
       date_regex,
-      ".{1,3}",
+      ".{1,3}", # Tricky: can't match on what appears to be a hyphen!
       date_regex
     ),
     text = info_tbl
   ) %>%
     regmatches(info_tbl, .) %>%
+    # Strip away sentinel pattern used to pick up strings.
     sapply(gsub, pattern = "In office", replacement = "") %>%
+    # Tricky: can't split on what appears to be a hyphen.
+    # Further tricky: the use of grouping for alternation of months means
+    # that \\1 - \\2 doesn't work as the expected replacement pattern, since
+    # technically there are actually four groups (two pairs, with each pair
+    # holding an entire date regex object and within that, the second grouping
+    # of the pair describes alternation of months).
     sapply(gsub, pattern = paste0("(", date_regex, ")", ".{1,3}", "(", date_regex, ")"), replacement = "\\1 - \\3") %>%
+    # Finally, now that we encoded a hyphen, split the term using said char.
     strsplit(split = " - ")
-    time_served_in_days <- lapply(past_terms, function(term_periods) {
-      beg_term = as.Date(term_periods[1], format = "%b %d, %Y")
-      end_term = as.Date(term_periods[2], format = "%b %d, %Y")
-      return(end_term - beg_term)
-    }) %>% Reduce(f = sum, x = .)
-    return(time_served_in_days)
+  # Time served is now described by a date difference.
+  # Just have to be careful formatting dates.
+  time_served_in_days <- lapply(past_terms, function(term_periods) {
+    beg_term = as.Date(term_periods[1], format = "%b %d, %Y")
+    end_term = as.Date(term_periods[2], format = "%b %d, %Y")
+    return(end_term - beg_term)
+  }) %>% Reduce(f = sum, x = .)
+  return(time_served_in_days)
 }
